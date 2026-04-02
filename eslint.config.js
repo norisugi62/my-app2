@@ -15,7 +15,7 @@ export default defineConfig([
       semi: ['error', 'always'], // 文末のセミコロンは必須
       quotes: ['error', 'single'], // 文字列はシングルクォートで囲む
       eqeqeq: ['error', 'always'], // 厳密な等価演算子を使用する ===を使用するってこと
-      'prefer-const': 'error', // 変更されない変数はconstを使用する
+      'prefer-const': 'error', // 再代入しない変数は let ではなく const で宣言することを強制する
     },
   },
 ]);
