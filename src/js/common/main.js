@@ -5,5 +5,7 @@ import '@/scss/style.scss';
 // document.querySelector('#app').innerHTML = `<h1>Hello World!!!!!!</h1>`;
 
 
-// todo git で.DS_storeが入っているみたいなのでこれ何かと監視からはずすようにして、
+
 // todo つぎにprettierを設定する方法を聞く
+// todo import '@/scss/style.scss';の説明も書く。vite.config.jsのこと
+// 
