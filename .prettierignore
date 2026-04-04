@@ -1,0 +1,41 @@
+# 依存関係やビルド出力は無視
+node_modules/
+dist/
+build/
+out/
+coverage/
+
+# 設定ファイルは基本無視（整形すると差分が出やすい）
+*.config.js
+*.config.cjs
+*.config.mjs
+*.config.ts
+*.env
+.prettierrc
+.prettierrc.js
+.prettierrc.cjs
+.prettierrc.mjs
+.prettierrc.json
+.prettierrc.jsonc
+.prettierrc.toml
+.prettierignore
+
+# 特定の古いコードや自動生成ファイル
+src/legacyCode.js
+src/generated/
+public/vendor/
+
+# ドキュメントや画像は無視
+docs/
+*.md
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# 一時ファイルや OS 特有ファイル
+*.log
+*.tmp
+*.swp
+.DS_Store
