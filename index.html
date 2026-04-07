@@ -1,13 +1,39 @@
 <!doctype html>
-<html lang="en">
+<html lang="js">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>my-app</title>
+    <title>TODO(JS)</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div>
+      <input placeholder="TODOを入力">
+      <button>追加</button>
+    </div>
+    <div>
+      <p>未完了のTODO</p>
+      <ul>
+        <li>
+          <div>
+            <p>TODOです</p>
+            <button>完了</button>
+            <button>削除</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <p>完了のTODO</p>
+      <ul>
+        <li>
+          <div>
+            <p>TODOでした</p>
+            <button>戻す</button>
+          </div>
+        </li>
+      </ul>
+    </div>
     <script type="module" src="./src/js/common/main.js"></script>
   </body>
 </html>

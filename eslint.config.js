@@ -20,15 +20,11 @@ export default defineConfig([
       'prefer-const': 'error', // 再代入しない変数は let ではなく const で宣言することを強制する
     },
   },
-  // Node用設定(vite.config.js)
+  // Node用設定(vite.config.jsだけにあてるルール)
   {
     files: ['vite.config.js'],
     languageOptions: {
-      globals: {
-        __dirname: 'readonly',
-        require: 'readonly',
-        process: 'readonly',
-      },
+      globals: globals.node,
     },
     rules: {}, // 特に追加ルールなくてもOK
   },
