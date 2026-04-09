@@ -1,0 +1,64 @@
+@use '@styles/global' as g;
+
+.todo {
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+  &__input {
+    width: 100%;
+    height: 30px;
+    background-color: #c6e5d9;
+    margin: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__input-field {
+    border-radius: 8px;
+    border: none;
+    padding: 6px 16px;
+  }
+
+  &__input-field::placeholder {
+    color: var(--text-h);
+  }
+
+  &__incomplete {
+    border: 2px solid #aacfd0;
+    width: 100%;
+    min-height: 200px;
+    padding: 8px;
+    margin: 8px;
+    border-radius: 8px;
+    background-color: var(--bg);
+  }
+
+  &__section-title {
+    text-align: center;
+    margin-top: 0;
+    font-weight: bold;
+  }
+
+  &__item {
+    margin-bottom: 6px;
+  }
+
+  &__item-content {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__complete {
+    border: 2px solid #aacfd0;
+    width: 100%;
+    min-height: 200px;
+    padding: 8px;
+    margin: 8px;
+    border-radius: 8px;
+    background-color: #c9dede;
+  }
+}

@@ -1,3 +1,5 @@
+@use '@styles/global' as g;
+
 .counter {
   font-family: var(--mono);
   display: inline-flex;

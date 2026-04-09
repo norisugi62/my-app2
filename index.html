@@ -7,32 +7,56 @@
     <title>TODO(JS)</title>
   </head>
   <body>
-    <div>
-      <input placeholder="TODOを入力">
-      <button>追加</button>
-    </div>
-    <div>
-      <p>未完了のTODO</p>
-      <ul>
-        <li>
-          <div>
-            <p>TODOです</p>
-            <button>完了</button>
-            <button>削除</button>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <div>
-      <p>完了のTODO</p>
-      <ul>
-        <li>
-          <div>
-            <p>TODOでした</p>
-            <button>戻す</button>
-          </div>
-        </li>
-      </ul>
+    <div class="todo">
+      <div class="todo__input">
+        <input
+          type="text"
+          name="todo"
+          placeholder="TODOを入力"
+          class="todo__input-field"
+        />
+        <button class="button">追加</button>
+      </div>
+
+      <div class="todo__incomplete">
+        <p class="todo__section-title">未完了のTODO</p>
+        <ul class="todo__list">
+          <li class="todo__item">
+            <div class="todo__item-content">
+              <p class="todo__item-text">TODOです</p>
+              <button class="todo__complete-button">完了</button>
+              <button class="todo__delete-button">削除</button>
+            </div>
+          </li>
+
+          <li class="todo__item">
+            <div class="todo__item-content">
+              <p class="todo__item-text">TODOです</p>
+              <button class="todo__complete-button">完了</button>
+              <button class="todo__delete-button">削除</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="todo__complete">
+        <p class="todo__section-title">完了のTODO</p>
+        <ul class="todo__list">
+          <li class="todo__item">
+            <div class="todo__item-content">
+              <p class="todo__text">TODOでした</p>
+              <button class="todo__back-button">戻す</button>
+            </div>
+          </li>
+
+          <li class="todo__item">
+            <div class="todo__item-content">
+              <p class="todo__text">TODOでした</p>
+              <button class="todo__back-button">戻す</button>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
     <script type="module" src="./src/js/common/main.js"></script>
   </body>
