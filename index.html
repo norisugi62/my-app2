@@ -10,52 +10,40 @@
     <div class="todo">
       <div class="todo__input">
         <input
+          id="todo__input-text"
           type="text"
           name="todo"
           placeholder="TODOを入力"
           class="todo__input-field"
         />
-        <button class="button">追加</button>
+        <button id="todo__add-button" class="button">追加</button>
       </div>
 
       <div class="todo__incomplete">
         <p class="todo__section-title">未完了のTODO</p>
-        <ul class="todo__list">
+        <ul id="todo__incomplete-list" class="todo__list"></ul>
+        <template id="todo__incomplete-template">
           <li class="todo__item">
             <div class="todo__item-content">
-              <p class="todo__item-text">TODOです</p>
+              <p class="todo__item-text"></p>
               <button class="todo__complete-button">完了</button>
               <button class="todo__delete-button">削除</button>
             </div>
           </li>
-
-          <li class="todo__item">
-            <div class="todo__item-content">
-              <p class="todo__item-text">TODOです</p>
-              <button class="todo__complete-button">完了</button>
-              <button class="todo__delete-button">削除</button>
-            </div>
-          </li>
-        </ul>
+        </template>
       </div>
 
       <div class="todo__complete">
         <p class="todo__section-title">完了のTODO</p>
-        <ul class="todo__list">
+        <ul id="todo__complete-list" class="todo__list"></ul>
+        <template id="todo__complete-template">
           <li class="todo__item">
             <div class="todo__item-content">
-              <p class="todo__text">TODOでした</p>
+              <p class="todo__item-text"></p>
               <button class="todo__back-button">戻す</button>
             </div>
           </li>
-
-          <li class="todo__item">
-            <div class="todo__item-content">
-              <p class="todo__text">TODOでした</p>
-              <button class="todo__back-button">戻す</button>
-            </div>
-          </li>
-        </ul>
+        </template>
       </div>
     </div>
     <script type="module" src="./src/js/common/main.js"></script>

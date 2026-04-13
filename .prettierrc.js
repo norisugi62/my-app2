@@ -22,7 +22,7 @@ export default {
   arrowParens: 'always',
 
   // 1行の最大文字数
-  printWidth: 80,
+  printWidth: 130,
 
   // OSによって違う改行コードをlfに統一
   endOfLine: 'lf',
