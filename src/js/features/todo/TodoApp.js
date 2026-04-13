@@ -56,6 +56,26 @@ export default class TodoApp {
     localStorage.setItem('todos', JSON.stringify(this.todos));
   }
 
+  // * 指定されたtodoを一つ上に移動させる
+  moveTodoUp(index) {
+    // 1番上なら何もしない
+    if (index === 0) return;
+    // 要素を取り出す
+    const [item] = this.todos.splice(index, 1);
+    // 取り出した要素を一つ上にずらす
+    this.todos.splice(index - 1, 0, item);
+  }
+
+  // * 指定されたtodoを一つ下に移動させる
+  moveTodoDown(index) {
+    // 1番下なら何もしない
+    if (index === this.todos.length - 1) return;
+    // 要素を取り出す
+    const [item] = this.todos.splice(index, 1);
+    // 取り出した要素を１つ下にずらす
+    this.todos.splice(index + 1, 0, item);
+  }
+
   // ==========================================
   // DOM取得
   // ==========================================
@@ -86,7 +106,7 @@ export default class TodoApp {
     this.todos.forEach((todo) => {
       const element = this.createTodoElement(todo); // 描画するtodoを取得
       const list = this.getTargetList(todo.status); // 描画するリストを取得
-      list.prepend(element); // リストに要素を追加していく
+      list.append(element); // リストに要素を追加していく
     });
   }
 
@@ -161,10 +181,43 @@ export default class TodoApp {
     this.renderTodos();
   }
 
+  // * ↑ボタンを押した時の処理
+  handleMoveUp(button) {
+    const index = this.getTodoIndexFromButton(button);
+    if (index === -1) return;
+    this.moveTodoUp(index);
+    this.saveTodos();
+    this.renderTodos();
+  }
+
+  // * ↓ボタンを押した時の処理
+  handleMoveDown(button) {
+    const index = this.getTodoIndexFromButton(button);
+    if (index === -1) return;
+    this.moveTodoDown(index);
+    this.saveTodos();
+    this.renderTodos();
+  }
+
   // * 未完了TODOの中の処理
   handleIncompleteListClick(e) {
     const deleteBtn = e.target.closest('.todo__delete-button');
     const completeBtn = e.target.closest('.todo__complete-button');
+    const upBtn = e.target.closest('.todo__up-button');
+    const downBtn = e.target.closest('.todo__down-button');
+
+    // 上ボタン
+    if (upBtn) {
+      this.handleMoveUp(upBtn);
+      return;
+    }
+
+    //下ボタン
+    if (downBtn) {
+      this.handleMoveDown(downBtn);
+      return;
+    }
+
     // 削除
     if (deleteBtn) {
       this.handleDeleteItem(deleteBtn);
@@ -181,6 +234,21 @@ export default class TodoApp {
   // * 完了TODOの中の処理
   handleCompleteListClick(e) {
     const backBtn = e.target.closest('.todo__back-button');
+    const upBtn = e.target.closest('.todo__up-button');
+    const downBtn = e.target.closest('.todo__down-button');
+
+    // 上ボタン
+    if (upBtn) {
+      this.handleMoveUp(upBtn);
+      return;
+    }
+
+    //下ボタン
+    if (downBtn) {
+      this.handleMoveDown(downBtn);
+      return;
+    }
+
     // 戻る
     if (backBtn) {
       this.handleBackItem(backBtn);
@@ -188,8 +256,7 @@ export default class TodoApp {
     }
   }
 }
-// todo 「DOM操作と状態管理を分ける」ここ行くと一気にReact的思考になります
 
-// todo 次にやるといいこと
-// todo 並び順保存
+
+// todo ドラッグで並び順変更
 // todo 編集機能
