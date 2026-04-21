@@ -5,6 +5,8 @@ export default class TodoApp {
     // ==========================================
     this.todos = JSON.parse(localStorage.getItem('todos')) || []; // localStorage読み込み
     this.draggedId = null;
+    this.pointerY = 0;
+    this.startY = 0;
 
     // ==========================================
     // DOM
@@ -24,6 +26,10 @@ export default class TodoApp {
     this.handleDragStart = this.handleDragStart.bind(this);
     this.handleDragOver = this.handleDragOver.bind(this);
     this.handleDrop = this.handleDrop.bind(this);
+    this.handlePointerDown = this.handlePointerDown.bind(this);
+    this.handlePointerMove = this.handlePointerMove.bind(this);
+    this.handlePointerUp = this.handlePointerUp.bind(this);
+    this.handlePointerCancel = this.handlePointerCancel.bind(this);
 
     // ==========================================
     // init
@@ -35,7 +41,7 @@ export default class TodoApp {
   // ==========================================
   // ロジック
   // ==========================================
-  // *
+
   /**
    * ドラッグ移動時の挿入位置(戻り値: insertIndex)を計算する
    * fromIndex, toIndexで移動方向と、shouldInsertAfterの
@@ -54,23 +60,19 @@ export default class TodoApp {
   // state操作
   // ==========================================
 
-  // * 新しいtodoをtodosに追加する
-  addTodo(text) {
-    this.todos.unshift({
-      text,
-      status: 'incomplete',
-      id: Date.now(),
-    });
+  // * 新しいtodoを先頭に追加した新しいリストを返す
+  addTodo({ text, list, id }) {
+    return [{ text, status: 'incomplete', id }, ...list];
   }
 
-  // * 指定したindexにあるtodoを削除
-  deleteTodo(index) {
-    this.todos.splice(index, 1);
+  // * 指定したidを削除して新しいリストを返す
+  deleteTodoById({ id, list }) {
+    return list.filter((todo) => todo.id !== id);
   }
 
-  // * 指定したindexにあるtodoのstatusを変更する
-  updateStatus(index, status) {
-    this.todos[index].status = status;
+  // * 指定したidのstatusを更新した新しいリストを返す
+  updateStatusById({ id, status, list }) {
+    return list.map((todo) => (todo.id === id ? { ...todo, status } : todo));
   }
 
   // * 現在のtodosをローカルストレージに保存
@@ -78,24 +80,37 @@ export default class TodoApp {
     localStorage.setItem('todos', JSON.stringify(this.todos));
   }
 
-  // * todosの並び順を変更する
-  moveTodos({ fromIndex, toIndex }) {
-    const list = [...this.todos];
-    const [item] = list.splice(fromIndex, 1);
-    list.splice(toIndex, 0, item);
-    this.todos = list;
+  // * todosの並び順を変更して新しいリストを返す
+  moveTodos({ fromIndex, toIndex, list }) {
+    const newList = [...list];
+    const [item] = newList.splice(fromIndex, 1);
+    newList.splice(toIndex, 0, item);
+    return newList;
   }
 
-  // * 指定されたtodoを一つ上に移動させる
-  moveTodoUp(index) {
-    if (index === 0) return; // 1番上なら何もしない
-    this.moveTodos({ fromIndex: index, toIndex: index - 1 });
+  // * todoをoffset分移動させる関数
+  moveTodoByOffset({ id, list, offset }) {
+    const fromIndex = this.getIndexById({ id, list });
+    if (fromIndex === -1) return list; // 見つからない場合は、元のlistを返す
+    const toIndex = fromIndex + offset;
+    // toIndexが、0未満もしくはlist.length以上になった場合は、元のlistを返す
+    if (toIndex < 0 || toIndex >= list.length) return list;
+    return this.moveTodos({
+      fromIndex,
+      toIndex,
+      list,
+    });
   }
 
-  // * 指定されたtodoを一つ下に移動させる
-  moveTodoDown(index) {
-    if (index === this.todos.length - 1) return; // 1番下なら何もしない
-    this.moveTodos({ fromIndex: index, toIndex: index + 1 });
+  // * ドラッグ後、idからtodoの順番を変更する関数
+  reorderByDrop({ fromId, toId, shouldInsertAfter, list }) {
+    const toIndex = this.getIndexById({ id: toId, list });
+    const fromIndex = this.getIndexById({ id: fromId, list });
+    if (fromIndex === -1 || toIndex === -1) return list;
+
+    const insertIndex = this.calculateInsertIndex({ fromIndex, toIndex, shouldInsertAfter });
+    if (fromIndex === insertIndex) return list;
+    return this.moveTodos({ fromIndex, toIndex, list });
   }
 
   // * 保存と描画を同じに実行する
@@ -108,20 +123,47 @@ export default class TodoApp {
   // DOM取得
   // ==========================================
 
-  // * buttonを元にtodosのindexを取得する関数
-  getTodoIndexFromElement(element) {
-    const todoItem = element.closest('.todo__item'); // 見つからない時はnullを返す
-    if (!todoItem) return -1;
+  // * idを使ってindexを取得(ない時は-1を返す。ある時はindexを返す)
+  getIndexById({ list, id }) {
+    return list.findIndex((todo) => todo.id === id);
+  }
+
+  // * 要素から.todo__item[data-id]を取得
+  getTodoItem(element) {
+    const todoItem = element.closest('.todo__item[data-id]');
+    return todoItem ? todoItem : null;
+  }
+
+  // * .todo__itemから、idを取得
+  getTodoId(todoItem) {
     const id = Number(todoItem.dataset.id);
-    if (Number.isNaN(id)) return -1;
-    return this.todos.findIndex((todo) => todo.id === id);
-    // ? 一致しない時は-1を返す。ので上のif文でも見つからなかった時は戻り値を-1で統一する
+    return Number.isNaN(id) ? null : id;
+  }
+
+  // * 要素から.todo__item[data-id]を探しidを取得する
+  getTodoIdFromElement(element) {
+    const todoItem = this.getTodoItem(element);
+    return todoItem ? this.getTodoId(todoItem) : null;
   }
 
   // * templateタグからcloneを作り出し取得
   createCloneFromTemplate(templateId) {
     const template = document.getElementById(templateId);
     return template.content.cloneNode(true);
+  }
+
+  // * handleDropの中で使うデータを集める関数
+  getDropContext(e) {
+    const target = this.getTodoItem(e.target);
+    if (target === null) return null;
+    const toId = this.getTodoId(target);
+    if (toId === null) return null;
+    const fromId = this.draggedId;
+    if (fromId === null) return null;
+    const rect = target.getBoundingClientRect(); // 位置情報取得
+    const middleY = rect.top + rect.height / 2; // 対象の真ん中のY座標取得
+    const shouldInsertAfter = e.clientY > middleY; // 後ろに挿入すべきか?
+    return { fromId, toId, shouldInsertAfter };
   }
 
   // ==========================================
@@ -165,16 +207,23 @@ export default class TodoApp {
     this.addButton.addEventListener('click', this.handleAddTodo, false);
     this.incompleteList.addEventListener('click', this.handleIncompleteListClick, false);
     this.completeList.addEventListener('click', this.handleCompleteListClick, false);
-    this.incompleteList.addEventListener('dragstart', this.handleDragStart, false);
-    this.incompleteList.addEventListener('dragover', this.handleDragOver, false);
-    this.incompleteList.addEventListener('drop', this.handleDrop, false);
+    // this.incompleteList.addEventListener('dragstart', this.handleDragStart, false);
+    // this.incompleteList.addEventListener('dragover', this.handleDragOver, false);
+    // this.incompleteList.addEventListener('drop', this.handleDrop, false);
+    this.incompleteList.addEventListener('pointerdown', this.handlePointerDown, false);
+    this.incompleteList.addEventListener('pointermove', this.handlePointerMove, false);
+    this.incompleteList.addEventListener('pointerup', this.handlePointerUp, false);
+    this.incompleteList.addEventListener('pointercancel', this.handlePointerCancel, false);
+    document.addEventListener('click', () => {
+      console.log('click fired');
+    });
   }
 
   // * todo 追加処理
   handleAddTodo() {
     const text = this.input.value;
     if (text.trim() === '') return; // 空文字なら無視
-    this.addTodo(text);
+    this.todos = this.addTodo({ text, list: this.todos, id: Date.now() });
     this.saveAndRender();
     this.input.value = '';
   }
@@ -188,41 +237,43 @@ export default class TodoApp {
 
   // * deleteボタン押した処理
   handleDeleteItem(button) {
-    const index = this.getTodoIndexFromElement(button);
-    if (index === -1) return; // -1 は、findIndexして見つからなかったときに取得する値
-    this.deleteTodo(index);
+    const id = this.getTodoIdFromElement(button);
+    if (id === null) return;
+    const newTodos = this.deleteTodoById({ id, list: this.todos });
+    if (this.todos.length === newTodos.length) return;
+    this.todos = newTodos;
     this.saveAndRender();
   }
 
   // * completeボタン押した処理
   handleCompleteItem(button) {
-    const index = this.getTodoIndexFromElement(button);
-    if (index === -1) return;
-    this.updateStatus(index, 'complete');
+    const id = this.getTodoIdFromElement(button);
+    if (id === null) return;
+    this.todos = this.updateStatusById({ id, status: 'complete', list: this.todos });
     this.saveAndRender();
   }
 
   // * backボタンを押した処理
   handleBackItem(button) {
-    const index = this.getTodoIndexFromElement(button);
-    if (index === -1) return;
-    this.updateStatus(index, 'incomplete');
+    const id = this.getTodoIdFromElement(button);
+    if (id === null) return;
+    this.todos = this.updateStatusById({ id, status: 'incomplete', list: this.todos });
     this.saveAndRender();
   }
 
   // * ↑ボタンを押した時の処理
   handleMoveUp(button) {
-    const index = this.getTodoIndexFromElement(button);
-    if (index === -1) return;
-    this.moveTodoUp(index);
+    const id = this.getTodoIdFromElement(button);
+    if (id === null) return;
+    this.todos = this.moveTodoByOffset({ id, list: this.todos, offset: -1 });
     this.saveAndRender();
   }
 
   // * ↓ボタンを押した時の処理
   handleMoveDown(button) {
-    const index = this.getTodoIndexFromElement(button);
-    if (index === -1) return;
-    this.moveTodoDown(index);
+    const id = this.getTodoIdFromElement(button);
+    if (id === null) return;
+    this.todos = this.moveTodoByOffset({ id, list: this.todos, offset: 1 });
     this.saveAndRender();
   }
 
@@ -283,12 +334,48 @@ export default class TodoApp {
     }
   }
 
+  handlePointerDown(e) {
+    const id = this.getTodoIdFromElement(e.target);
+    if (id === null) return;
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    this.draggedId = id;
+    e.currentTarget.setPointerCapture(e.pointerId); // 必須(やらないと途中でイベントが途切れる)
+    console.log('down');
+  }
+
+  handlePointerMove(e) {
+    if (this.draggedId === null) return;
+    this.pointerY = e.clientY;
+    console.log('move');
+  }
+
+  handlePointerUp(e) {
+    console.log('up');
+    if (this.draggedId === null) return;
+    console.log('this.draggedId:', this.draggedId);
+    try {
+      const target = this.getTodoItem(e.target);
+      if (!target) return;
+      const context = this.getDropContext(e);
+      console.log('context:', context);
+      if (!context) return;
+      this.todos = this.reorderByDrop({ ...context, list: this.todos });
+      this.saveAndRender();
+    } finally {
+      this.draggedId = null;
+    }
+  }
+
+  handlePointerCancel() {
+    console.log('cancel');
+    this.draggedId = null;
+  }
+
   // * ドラッグ開始処理
   handleDragStart(e) {
-    const item = e.target.closest('.todo__item');
-    if (!item) return;
-    const id = Number(item.dataset.id);
-    if (Number.isNaN(id)) return;
+    const id = this.getTodoIdFromElement(e.target);
+    if (id === null) return;
     this.draggedId = id;
   }
 
@@ -301,40 +388,16 @@ export default class TodoApp {
   handleDrop(e) {
     e.preventDefault();
     try {
-      const target = e.target.closest('.todo__item');
-      if (!target) return; // .todo__itemを“保証する”ためのガード」
-
-      const toIndex = this.getTodoIndexFromElement(target);
-      if (toIndex === -1) return;
-
-      const id = this.draggedId;
-      if (id === null) return;
-
-      const fromIndex = this.todos.findIndex((todo) => todo.id === id);
-      if (fromIndex === -1) return;
-
-      const rect = target.getBoundingClientRect(); // 位置情報取得
-      const middleY = rect.top + rect.height / 2; // 対象の真ん中のY座標取得
-      const shouldInsertAfter = e.clientY > middleY; // 後ろに挿入すべきか?
-
-      const insertIndex = this.calculateInsertIndex({ fromIndex, toIndex, shouldInsertAfter });
-
-      if (fromIndex === insertIndex) return;
-
-      this.moveTodos({ fromIndex, toIndex: insertIndex });
+      const result = this.getDropContext(e);
+      if (!result) return;
+      this.todos = this.reorderByDrop({ ...result, list: this.todos });
       this.saveAndRender();
     } finally {
       this.draggedId = null; // これだけは、早期returnでもしときたいのでfinallyに書いておく
     }
   }
-
-
 }
-
 
 // todo pointerイベントで
 
 // todo 編集機能
-
-// todo データ配列にunshiftすることで、新しい追加todoは前に表示することになったけど、
-// todo 戻すや完了を押したときにtodoは後に追加する形になっているのどうにかできないかな？

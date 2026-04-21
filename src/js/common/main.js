@@ -3,17 +3,30 @@ import { TodoApp } from '../features';
 
 new TodoApp();
 
-// function move(arr, from, to) {
-//   const copy = [...arr];
-//   const item = copy.splice(from, 1)[0];
-//   copy.splice(to, 0, item);
-//   console.log('copy:', copy);
-//   return copy;
+// moveTodoById({ list, id, offset }) {
+//   const index = list.findIndex(todo => todo.id === id);
+//   if (index === -1) return list;
+
+//   const newIndex = index + offset;
+//   if (newIndex < 0 || newIndex >= list.length) return list;
+
+//   const newList = [...list];
+//   const [item] = newList.splice(index, 1);
+//   newList.splice(newIndex, 0, item);
+
+//   return newList;
 // }
 
-// let arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-// console.log('arr:', arr);
+// handleMoveUp(button) {
+//   const id = this.getTodoIdFromElement(button);
+//   if (id === null) return;
 
-// move(arr, 0, 1);
-// move(arr, 0, 12);
+//   this.todos = this.moveTodoById({
+//     list: this.todos,
+//     id,
+//     offset: -1
+//   });
+
+//   this.saveAndRender();
+// }
 
