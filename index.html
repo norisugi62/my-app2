@@ -9,13 +9,7 @@
   <body>
     <div class="todo">
       <div class="todo__input">
-        <input
-          id="todo__input-text"
-          type="text"
-          name="todo"
-          placeholder="TODOを入力"
-          class="todo__input-field"
-        />
+        <input id="todo__input-text" type="text" name="todo" placeholder="TODOを入力" class="todo__input-field" />
         <button id="todo__add-button" class="button">追加</button>
       </div>
 
@@ -23,7 +17,7 @@
         <p class="todo__section-title">未完了のTODO</p>
         <ul id="todo__incomplete-list" class="todo__list"></ul>
         <template id="todo__incomplete-template">
-          <li class="todo__item" draggable="true">
+          <li class="todo__item">
             <div class="todo__item-content">
               <p class="todo__item-text"></p>
               <button class="todo__up-button button">↑</button>
@@ -39,7 +33,7 @@
         <p class="todo__section-title">完了のTODO</p>
         <ul id="todo__complete-list" class="todo__list"></ul>
         <template id="todo__complete-template">
-          <li class="todo__item" draggable="true">
+          <li class="todo__item">
             <div class="todo__item-content">
               <p class="todo__item-text"></p>
               <button class="todo__up-button button">↑</button>

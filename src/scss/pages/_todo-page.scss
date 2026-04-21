@@ -49,14 +49,14 @@
   &__item {
     margin-bottom: 6px;
     touch-action: none; // pointerイベントでfrag処理を行うときに設定しました。
-    // user-select: none;
+    user-select: none;
     & * {
-      // user-select: none;
+      user-select: none;
     }
   }
 
   &__item-text {
-    user-select: none;
+    // user-select: none;
     color: red;
   }
 

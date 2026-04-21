@@ -7,6 +7,7 @@ export default class TodoApp {
     this.draggedId = null;
     this.pointerY = 0;
     this.startY = 0;
+    this.isDragging = false;
 
     // ==========================================
     // DOM
@@ -214,9 +215,9 @@ export default class TodoApp {
     this.incompleteList.addEventListener('pointermove', this.handlePointerMove, false);
     this.incompleteList.addEventListener('pointerup', this.handlePointerUp, false);
     this.incompleteList.addEventListener('pointercancel', this.handlePointerCancel, false);
-    document.addEventListener('click', () => {
-      console.log('click fired');
-    });
+    // document.addEventListener('click', () => {
+    //   console.log('click fired');
+    // });
   }
 
   // * todo 追加処理
@@ -334,44 +335,78 @@ export default class TodoApp {
     }
   }
 
+  // handlePointerDown(e) {
+  //   if (e.target.closest('button')) return;
+  //   const id = this.getTodoIdFromElement(e.target);
+  //   if (id === null) return;
+  //   // e.preventDefault();
+  //   e.preventDefault();
+  //   this.draggedId = id;
+  //   this.startY = e.clientY;
+  //   console.log('down');
+  // }
+
+  // handlePointerMove(e) {
+  //   if (this.draggedId === null) return;
+  //   const diff = Math.abs(e.clientY - this.startY);
+  //   if (diff > 5 && !this.isDragging) {
+  //     this.isDragging = true;
+
+  //     e.currentTarget.setPointerCapture(e.pointerId); // 必須(やらないと途中でイベントが途切れる)
+  //     console.log('moveちゅ通');
+  //   }
+
+  //   this.pointerY = e.clientY;
+  //   console.log('move');
+  // }
+
+  // handlePointerUp(e) {
+  //   if (!this.isDragging) return;
+  //   if (this.draggedId === null) return;
+  //   try {
+  //     console.log('up');
+  //     // const target = this.getTodoItem(e.target);
+  //     // if (!target) return;
+  //     // const context = this.getDropContext(e);
+  //     // console.log('context:', context);
+  //     // if (!context) return;
+  //     // this.todos = this.reorderByDrop({ ...context, list: this.todos });
+  //     // this.saveAndRender();
+  //   } finally {
+  //     console.log('this.draggedId:', this.draggedId);
+  //     this.draggedId = null;
+  //     this.isDragging = false;
+  //   }
+  // }
+  // ==========================================
+  // pointer イベント
+  // ==========================================
   handlePointerDown(e) {
-    const id = this.getTodoIdFromElement(e.target);
-    if (id === null) return;
-    if (e.target.closest('button')) return;
-    e.preventDefault();
-    this.draggedId = id;
-    e.currentTarget.setPointerCapture(e.pointerId); // 必須(やらないと途中でイベントが途切れる)
+    const item = e.target.closest('.todo__item');
+    if (!item) return;
     console.log('down');
+    this.dragging = true;
   }
 
   handlePointerMove(e) {
-    if (this.draggedId === null) return;
-    this.pointerY = e.clientY;
+    if (!this.dragging) return;
     console.log('move');
   }
 
   handlePointerUp(e) {
+    if (!this.dragging) return;
     console.log('up');
-    if (this.draggedId === null) return;
-    console.log('this.draggedId:', this.draggedId);
-    try {
-      const target = this.getTodoItem(e.target);
-      if (!target) return;
-      const context = this.getDropContext(e);
-      console.log('context:', context);
-      if (!context) return;
-      this.todos = this.reorderByDrop({ ...context, list: this.todos });
-      this.saveAndRender();
-    } finally {
-      this.draggedId = null;
-    }
+    this.dragging = false;
   }
 
   handlePointerCancel() {
     console.log('cancel');
-    this.draggedId = null;
+    // this.draggedId = null;
   }
 
+  // ==========================================
+  // drag イベント
+  // ==========================================
   // * ドラッグ開始処理
   handleDragStart(e) {
     const id = this.getTodoIdFromElement(e.target);
