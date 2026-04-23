@@ -4,10 +4,10 @@ export default class TodoApp {
     // state
     // ==========================================
     this.todos = JSON.parse(localStorage.getItem('todos')) || []; // localStorage読み込み
-    this.draggedId = null;
-    this.pointerY = 0;
-    this.startY = 0;
     this.isDragging = false;
+    this.draggedId = null;
+    this.startY = 0;
+    this.pointerY = 0;
 
     // ==========================================
     // DOM
@@ -55,6 +55,11 @@ export default class TodoApp {
     } else {
       return shouldInsertAfter ? toIndex + 1 : toIndex;
     }
+  }
+
+  // * 5px超えたならdrag開始したと判断する
+  shouldStartPointerDrag({ startY, currentY, threshold = 5 }) {
+    return Math.abs(currentY - startY) > threshold;
   }
 
   // ==========================================
@@ -167,6 +172,20 @@ export default class TodoApp {
     return { fromId, toId, shouldInsertAfter };
   }
 
+  // * handlePointerDropの中でデータを集める関数
+  getPointerDropContext({el, clientY}) {
+    const target = this.getTodoItem(el);
+    if (target === null) return null;
+    const toId = this.getTodoId(target);
+    if (toId === null) return null;
+    const fromId = this.draggedId;
+    if (fromId === null) return null;
+    const rect = target.getBoundingClientRect(); // 位置情報取得
+    const middleY = rect.top + rect.height / 2; // 対象の真ん中のY座標取得
+    const shouldInsertAfter = clientY > middleY; // 後ろに挿入すべきか?
+    return { fromId, toId, shouldInsertAfter };
+  }
+
   // ==========================================
   // 描画
   // ==========================================
@@ -215,9 +234,6 @@ export default class TodoApp {
     this.incompleteList.addEventListener('pointermove', this.handlePointerMove, false);
     this.incompleteList.addEventListener('pointerup', this.handlePointerUp, false);
     this.incompleteList.addEventListener('pointercancel', this.handlePointerCancel, false);
-    // document.addEventListener('click', () => {
-    //   console.log('click fired');
-    // });
   }
 
   // * todo 追加処理
@@ -335,73 +351,58 @@ export default class TodoApp {
     }
   }
 
-  // handlePointerDown(e) {
-  //   if (e.target.closest('button')) return;
-  //   const id = this.getTodoIdFromElement(e.target);
-  //   if (id === null) return;
-  //   // e.preventDefault();
-  //   e.preventDefault();
-  //   this.draggedId = id;
-  //   this.startY = e.clientY;
-  //   console.log('down');
-  // }
 
-  // handlePointerMove(e) {
-  //   if (this.draggedId === null) return;
-  //   const diff = Math.abs(e.clientY - this.startY);
-  //   if (diff > 5 && !this.isDragging) {
-  //     this.isDragging = true;
-
-  //     e.currentTarget.setPointerCapture(e.pointerId); // 必須(やらないと途中でイベントが途切れる)
-  //     console.log('moveちゅ通');
-  //   }
-
-  //   this.pointerY = e.clientY;
-  //   console.log('move');
-  // }
-
-  // handlePointerUp(e) {
-  //   if (!this.isDragging) return;
-  //   if (this.draggedId === null) return;
-  //   try {
-  //     console.log('up');
-  //     // const target = this.getTodoItem(e.target);
-  //     // if (!target) return;
-  //     // const context = this.getDropContext(e);
-  //     // console.log('context:', context);
-  //     // if (!context) return;
-  //     // this.todos = this.reorderByDrop({ ...context, list: this.todos });
-  //     // this.saveAndRender();
-  //   } finally {
-  //     console.log('this.draggedId:', this.draggedId);
-  //     this.draggedId = null;
-  //     this.isDragging = false;
-  //   }
-  // }
   // ==========================================
   // pointer イベント
   // ==========================================
   handlePointerDown(e) {
-    const item = e.target.closest('.todo__item');
-    if (!item) return;
-    console.log('down');
-    this.dragging = true;
+    if (e.target.closest('button')) return;
+    const id = this.getTodoIdFromElement(e.target);
+    if (id === null) return;
+    this.draggedId = id;
+    this.startY = e.clientY;
   }
 
   handlePointerMove(e) {
-    if (!this.dragging) return;
-    console.log('move');
+    if (this.draggedId === null) return;
+    if (!this.isDragging && this.shouldStartPointerDrag({ startY: this.startY, currentY: e.clientY })) {
+      this.startPointerDrag(e);
+    }
+    if (!this.isDragging) return;
   }
 
   handlePointerUp(e) {
-    if (!this.dragging) return;
-    console.log('up');
-    this.dragging = false;
+    try {
+      if (!this.isDragging) return;
+      if (this.draggedId === null) return;
+
+      // ポインタの下にある本当の要素を取得
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (!el) return;
+      const target = this.getTodoItem(el);
+      if (!target) return;
+      const context = this.getPointerDropContext({el, clientY: e.clientY});
+      if (!context) return;
+      this.todos = this.reorderByDrop({ ...context, list: this.todos });
+      this.saveAndRender();
+    } finally {
+      this.draggedId = null;
+      this.isDragging = false;
+    }
+  }
+
+  // * pointerでドラッグ判定したとき一度だけする処理
+  startPointerDrag(e) {
+    this.isDragging = true;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    // * ↑必須(やらないと途中でイベントが途切れる)
   }
 
   handlePointerCancel() {
     console.log('cancel');
-    // this.draggedId = null;
+    this.draggedId = null;
+    this.isDragging = false;
   }
 
   // ==========================================
@@ -433,6 +434,12 @@ export default class TodoApp {
   }
 }
 
-// todo pointerイベントで
 
 // todo 編集機能
+
+/**
+ * pointerイベントの前に、ドラッグイベントを実装しました。
+ * このとき.todo__item要素にdraggable="ture"とつけてください。
+ * これはこの要素にドラッグイベントつけるよって合図なので実装する時は必須です。
+ * 逆にpointerイベント時には邪魔をするので削除してください。
+ */
