@@ -400,7 +400,6 @@ export default class TodoApp {
   }
 
   handlePointerCancel() {
-    console.log('cancel');
     this.draggedId = null;
     this.isDragging = false;
   }
