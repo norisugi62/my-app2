@@ -396,7 +396,28 @@ export default class TodoApp {
     this.isDragging = true;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
-    // * ↑必須(やらないと途中でイベントが途切れる)
+    // ! ↑必須(やらないと途中でイベントが途切れる)けど、今は安定しているので外してもOKかもしれません。
+    /**
+     * 最初、間違えてpointerイベントを作っているときに、.todo__listにイベントつけてるんだけどその要素に
+     * draggable="ture"というドラッグイベントのための属性です。pointerイベントでは、
+     * これが悪さをしてpointercancelが働いてしまって上手く動かないから、このsetPointerCaputure()が
+     * 必要だと思ってつけてました。これはドラッグ中にmoveを取りこぼしたり、upを受け取れないとかドラッグが
+     * 終了できないってなったときに試すメソッドです。これを使うとドラッグ開始した要素か親要素が最後まで
+     * 責任も持つ。つまり配送先が固定されます。e.curretTargetは親の.todo__listだけど、e.targetも.todo__listに
+     * なってしまいます(今回はそうですが、どうなるかはe.targetを調べないと何に固定されるかわからないので確認必須)。
+     * でもこれ使ってもdraggable="ture"の悪さは解決できませんでしたが、これのせいで試していた関数です。
+     * しかし、draggable="ture"が悪さしているのわかって外したら問題解決ができて、むしろその後の処理で
+     * 今まで用意していた関数でe.targetの引数が使えず、そのために似てるけど引数が違う関数を作ってしまって、
+     * これのせいで余計な関数が増えたというならば、無しで動くのならばこの関数は削除する方がいいのかもしれません。
+     * 今は専用の関数作ってしまったのと、そのために用意したdocument.elementFromPoint()という現在のポインタがある
+     * 座標の要素を取得する関数を使ってe.targetの代用して関数が完成してしまっているので削除しません。
+     * 削除する場合は、ドラッグイベントで作ったhandleDrop()と同じgetDropContext()が使えると思います。
+     * そうしたら、elementFromPoint()関数は使わないで済むし、e.targetがそのまま使えると思うので
+     * getPointerDropContext()は必要なくなると思います。
+     * e.currentTarget.setPointerCapture(e.pointerId);削除しても動くのは、elementFromPoint()で受け取る要素が
+     * e.currentTarget.setPointerCapture(e.pointerId);を外したあと、e.targetの要素と同じだから関数変えなくても
+     * 動くからです。だから削除してもしなくても挙動が変わらないので削除していないだけ。
+     */
   }
 
   handlePointerCancel() {
